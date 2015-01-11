@@ -94,7 +94,7 @@ try:
 	
 	for i in xrange(NUM_WORDS):
 		for j in xrange(NUM_HID):
-			w_ih[j] = np.add(w_ih[j], eta * delta_h[j] * in_ih[i])
+			w_ih[j] = np.add(w_ih[j], eta * delta_h[j + i*NUM_WORDS] * in_ih[i])
 	
 	#print in_ih
 	#print w_ih
