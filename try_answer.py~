@@ -5,7 +5,7 @@ import random
 import numpy as np
 import cPickle as pickle
 
-PERC = 2 # Number of 0 values for every 1 value (target)
+PERC = 0.4 # Fraction of target = 0 values
 ELEMS = None #100000
 
 fc = codecs.open("new_step33.dat","r","utf-8")
@@ -43,43 +43,6 @@ def save(fn):
 	fo.close()
 	print "done"
 
-def train(ln, target):
-	out_ih = []
-	in_ih = []
-	for i,word in enumerate(ln):
-		in_tmp_ih = [0.0]*NUM_PARAMS
-		in_tmp_ih[words.index(word)] = 1.0
-		
-		in_tmp_ih += [1] #Bias
-		in_tmp_ih = np.array(in_tmp_ih)
-		
-		in_ih.append(in_tmp_ih)
-		
-		out_tmp_ih = [np.dot(in_tmp_ih,w_ih[i]) for i in xrange(NUM_HID)]
-		out_tmp_ih = [sigmoid(x) for x in out_tmp_ih]
-		out_ih += list(out_tmp_ih)
-	
-	out_ih += [1] # Bias
-	out_ih = np.array(out_ih)
-	out_ho = np.dot(out_ih,w_ho)
-	out_ho = sigmoid(out_ho)
-	
-	delta_o = out_ho * (1.0 - out_ho) * (target - out_ho)	
-	w_ho = np.add(w_ho, eta * delta_o * out_ih)
-	
-	delta_h = np.multiply(np.multiply(out_ih, (1.0 - out_ih)), w_ho * delta_o)
-	delta_h = delta_h[:-1] # Removing Bias
-	
-	for i in xrange(NUM_WORDS):
-		for j in xrange(NUM_HID):
-			w_ih[j] = np.add(w_ih[j], eta * delta_h[j + i*NUM_WORDS] * in_ih[i])
-	
-	#print in_ih
-	#print w_ih
-	#print out_ih
-	#print w_ho
-	#print out_ho
-
 eta = 0.01
 print "Training"
 ctr = 1
@@ -97,19 +60,70 @@ try:
 	if len(ln)!=NUM_WORDS: continue
 	if any([k not in words for k in ln]): continue	
 
-	
-	train(ln, 1.0)
-	for i in range(PERC):
-		ln[NUM_WORDS // 2] = random.choice(words)
-		train(ln, 0.0)
-	
-except KeyboardInterrupt:
-  print "Saving Data"
-  save("savedata_t.pkl")
-  pass
+	out_ih = []
+	in_ih = []
+	target = 1.0
+	for i,word in enumerate(ln):
+		in_tmp_ih = [0.0]*NUM_PARAMS
+		if i==2 and random.random() < PERC:
+			# PERC of the time, selects random middle word
+			in_tmp_ih[random.randrange(NUM_PARAMS)] = 1.0
+			target = 0.0
+		else:
+			in_tmp_ih[words.index(word)] = 1.0
+				
+		in_tmp_ih += [1] #Bias
+		in_tmp_ih = np.array(in_tmp_ih)
 
+		in_ih.append(in_tmp_ih)
+		
+		out_tmp_ih = [np.dot(in_tmp_ih,w_ih[i]) for i in xrange(NUM_HID)]
+		out_tmp_ih = [sigmoid(x) for x in out_tmp_ih]
+		out_ih += list(out_tmp_ih)
+	
+	out_ih += [1] # Bias
+	out_ih = np.array(out_ih)
+	out_ho = np.dot(out_ih,w_ho)
+	out_ho = sigmoid(out_ho)
+
+	delta_o = out_ho * (1.0 - out_ho) * (target - out_ho)	
+	w_ho = np.add(w_ho, eta * delta_o * out_ih)
+
+	delta_h = np.multiply(np.multiply(out_ih, (1.0 - out_ih)), w_ho * delta_o)
+	delta_h = delta_h[:-1] # Removing Bias
+	
+	for i in xrange(NUM_WORDS):
+		for j in xrange(NUM_HID):
+			w_ih[j] = np.add(w_ih[j], eta * delta_h[j + i*NUM_WORDS] * in_ih[i])
+	
+	#print in_ih
+	#print w_ih
+	#print out_ih
+	#print w_ho
+	#print out_ho
+except KeyboardInterrupt:
+  pass
+	
 fi.close()
 
 
-save("savedata.pkl")
+save("savedata.pkl")	
 sys.exit(0)
+
+print "Creating current status..."
+fo = codecs.open("prog.dat","w",encoding="utf-8")
+for i,word in enumerate(words):
+	fo.write(word + "\t")
+	inp = [0.0]*NUM_PARAMS
+	inp[i] = 1.0
+	inp.append(1.0)
+	inp = np.array(inp)
+	
+	out = [np.dot(inp,w_ih[j]) for j in xrange(NUM_HID)]
+
+	fo.write(" ".join([str(j) for j in out]))
+	fo.write("\n")
+fo.close()
+print "done"
+
+
