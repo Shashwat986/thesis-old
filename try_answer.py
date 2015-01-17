@@ -44,6 +44,10 @@ def save(fn):
 	print "done"
 
 def train(ln, target):
+	global w_ih
+	global w_ho
+	global words
+	
 	out_ih = []
 	in_ih = []
 	for i,word in enumerate(ln):
