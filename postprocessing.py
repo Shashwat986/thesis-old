@@ -10,19 +10,22 @@ from scipy.cluster import hierarchy as hier
 from scipy.spatial import distance
 import json
 import codecs
+import sys
 
-matplotlib.rc('font', **{'sans-serif' : 'Arial', 'family' : 'sans-serif'})
-
-SIZE = 30000
+#matplotlib.rc('font', **{'sans-serif' : 'Arial', 'family' : 'sans-serif'})
+if len(sys.argv) < 2:
+	print "Provide file name"
+	sys.exit(1)
+elif len(sys.argv) < 3:
+	out_file = "nn9m.dat"
+else:
+	out_file = sys.argv[2]
 
 print "Start"
-fi = codecs.open("prog.dat","r","utf-8")
+fi = codecs.open(sys.argv[1],"r","utf-8")
 words = []
 data = []
-ctr = 0
 for line in fi:
-	if ctr > SIZE: break
-	ctr += 1
 	
 	if not len(line.strip()): continue
 	k = line.strip().split()
@@ -49,7 +52,7 @@ hier.dendrogram(links, labels = words)
 knn = KNeighborsClassifier()
 knn.fit(vectors,[0]*len(vectors))
 
-fo = codecs.open("nn9m.dat","w","utf-8")
+fo = codecs.open(out_file,"w","utf-8")
 for i,word in enumerate(words):
 	d,n = knn.kneighbors(vectors[i], n_neighbors = 5, return_distance = True)
 	if i%1000==0: print d,n
