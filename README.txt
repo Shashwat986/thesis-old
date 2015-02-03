@@ -28,4 +28,10 @@ where all the weights in W1 are always the same.
 
 10) We can use multiple methods of postprocessing to deal with this. postprocessing.py deals with NN calculation, and (to some extent) hierarchical clustering. Gives nn9m.dat
 
+--
 
+TODO:
+
+Add Autoencoder algorithm
+Add test tasks (Possibly odd-one-out approach, similar to Pranjal)
+Compare with word2vec and glove

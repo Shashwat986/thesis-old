@@ -36,6 +36,8 @@ else:
 
 
 def save(fn):
+	global w_ih
+	global w_ho
 	print "Saving progress...",
 	fo = open(fn,"wb")
 	pickle.dump(w_ih,fo)
